@@ -10,7 +10,17 @@ export const createPaymentOrder = async ({ amount, receipt }) => {
 
   const order = await razorpay.orders.create(options);
 
-  return order;
+  const payment = await Payment.create({
+    razorpayOrderId: order.id,
+    amount: order.amount,
+    currency: order.currency,
+    status: "created",
+  });
+
+  return {
+    order,
+    payment,
+  };
 };
 
 export const verifyPayment = async ({
@@ -35,21 +45,23 @@ export const savePayment = async ({
   amount,
   currency,
 }) => {
-  const existingPayment = await Payment.findOne({
-    razorpayPaymentId,
-  });
+  const payment = await Payment.findOneAndUpdate(
+    { razorpayOrderId },
+    {
+      razorpayPaymentId,
+      amount,
+      currency,
+      status: "paid",
+    },
+    {
+      returnDocument: "after",
+      runValidators: true,
+    },
+  );
 
-  if (existingPayment) {
-    return existingPayment;
+  if (!payment) {
+    throw new Error("Payment record not found");
   }
-
-  const payment = await Payment.create({
-    razorpayOrderId,
-    razorpayPaymentId,
-    amount,
-    currency,
-    status: "paid",
-  });
 
   return payment;
 };

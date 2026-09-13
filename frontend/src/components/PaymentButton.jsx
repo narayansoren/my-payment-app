@@ -9,13 +9,10 @@ function PaymentButton() {
 
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-
         amount: data.order.amount,
         currency: data.order.currency,
-
         name: "My MERN Store",
         description: "Test Payment",
-
         order_id: data.order.id,
 
         handler: async function (response) {
@@ -40,6 +37,14 @@ function PaymentButton() {
           }
         },
 
+        modal: {
+          ondismiss: function () {
+            console.log("Checkout dismissed by user");
+
+            alert("Payment cancelled.");
+          },
+        },
+
         prefill: {
           name: "Test User",
           email: "test@example.com",
@@ -52,6 +57,12 @@ function PaymentButton() {
       };
 
       const razorpay = new window.Razorpay(options);
+
+      razorpay.on("payment.failed", function (response) {
+        console.log("Payment Failed:", response);
+
+        alert("Payment failed. Please try again.");
+      });
 
       razorpay.open();
     } catch (error) {

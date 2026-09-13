@@ -19,7 +19,7 @@ export const createOrder = async (req, res) => {
 
     const receipt = `receipt_${Date.now()}`;
 
-    const order = await createPaymentOrder({
+    const { order, payment } = await createPaymentOrder({
       amount,
       receipt,
     });
@@ -28,6 +28,13 @@ export const createOrder = async (req, res) => {
       success: true,
       message: "Razorpay order created successfully",
       order,
+      payment: {
+        id: payment._id,
+        orderId: payment.razorpayOrderId,
+        amount: payment.amount,
+        currency: payment.currency,
+        status: payment.status,
+      },
     });
   } catch (error) {
     console.error("Create order error:", error);
