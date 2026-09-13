@@ -77,6 +77,15 @@ export const verifyPaymentController = async (req, res) => {
       });
     }
 
+    if (order.paymentStatus !== "captured" || order.orderStatus !== "paid") {
+      return res.status(400).json({
+        success: false,
+        message: "Payment is not successfully captured",
+        paymentStatus: order.paymentStatus,
+        orderStatus: order.orderStatus,
+      });
+    }
+
     const payment = await savePayment({
       razorpayOrderId: order.orderId,
       razorpayPaymentId: order.paymentId,

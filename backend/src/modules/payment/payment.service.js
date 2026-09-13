@@ -30,10 +30,18 @@ export const verifyPayment = async ({
 }) => {
   const order = await razorpay.orders.fetch(razorpayOrderId);
 
+  const payment = await razorpay.payments.fetch(razorpayPaymentId);
+
   return {
     orderId: order.id,
-    paymentId: razorpayPaymentId,
+    orderStatus: order.status,
+
+    paymentId: payment.id,
+    paymentStatus: payment.status,
+    paymentCaptured: payment.captured,
+
     signature: razorpaySignature,
+
     amount: order.amount,
     currency: order.currency,
   };
