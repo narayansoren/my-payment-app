@@ -35,6 +35,14 @@ export const savePayment = async ({
   amount,
   currency,
 }) => {
+  const existingPayment = await Payment.findOne({
+    razorpayPaymentId,
+  });
+
+  if (existingPayment) {
+    return existingPayment;
+  }
+
   const payment = await Payment.create({
     razorpayOrderId,
     razorpayPaymentId,
