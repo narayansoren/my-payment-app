@@ -65,3 +65,26 @@ export const savePayment = async ({
 
   return payment;
 };
+
+export const markPaymentAsFailed = async ({
+  razorpayOrderId,
+  razorpayPaymentId,
+}) => {
+  const payment = await Payment.findOneAndUpdate(
+    { razorpayOrderId },
+    {
+      razorpayPaymentId,
+      status: "failed",
+    },
+    {
+      returnDocument: "after",
+      runValidators: true,
+    },
+  );
+
+  if (!payment) {
+    throw new Error("Payment record not found");
+  }
+
+  return payment;
+};

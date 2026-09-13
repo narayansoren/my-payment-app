@@ -33,3 +33,19 @@ export const verifyPayment = async (paymentData) => {
 
   return response.json();
 };
+
+export const markPaymentAsFailed = async (paymentData) => {
+  const response = await fetch(`${API_URL}/payment/payment-failed`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(paymentData),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update payment status");
+  }
+
+  return response.json();
+};

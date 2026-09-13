@@ -1,4 +1,8 @@
-import { createPaymentOrder, verifyPayment } from "../services/paymentApi";
+import {
+  createPaymentOrder,
+  verifyPayment,
+  markPaymentAsFailed,
+} from "../services/paymentApi";
 
 function PaymentButton() {
   const handlePayment = async () => {
@@ -58,10 +62,26 @@ function PaymentButton() {
 
       const razorpay = new window.Razorpay(options);
 
-      razorpay.on("payment.failed", function (response) {
+      razorpay.on("payment.failed", async function (response) {
         console.log("Payment Failed:", response);
 
-        alert("Payment failed. Please try again.");
+        try {
+          const paymentId = response.error.metadata.payment_id;
+          const orderId = response.error.metadata.order_id;
+
+          const failedPaymentResponse = await markPaymentAsFailed({
+            razorpayOrderId: orderId,
+            razorpayPaymentId: paymentId,
+          });
+
+          console.log("Failed Payment Saved:", failedPaymentResponse);
+
+          alert("Payment failed. Please try again.");
+        } catch (error) {
+          console.error("Failed Payment Update Error:", error);
+
+          alert("Payment failed. Please try again.");
+        }
       });
 
       razorpay.open();

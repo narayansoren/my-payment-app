@@ -2,6 +2,7 @@ import {
   createPaymentOrder,
   verifyPayment,
   savePayment,
+  markPaymentAsFailed,
 } from "./payment.service.js";
 
 import { verifyRazorpaySignature } from "../../common/utils/verifyRazorpaySignature.js";
@@ -101,6 +102,44 @@ export const verifyPaymentController = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Payment verification failed",
+    });
+  }
+};
+
+export const failedPaymentController = async (req, res) => {
+  try {
+    const { razorpayOrderId, razorpayPaymentId } = req.body;
+
+    if (!razorpayOrderId || !razorpayPaymentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment failure details are required",
+      });
+    }
+
+    const payment = await markPaymentAsFailed({
+      razorpayOrderId,
+      razorpayPaymentId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment marked as failed",
+      payment: {
+        id: payment._id,
+        orderId: payment.razorpayOrderId,
+        paymentId: payment.razorpayPaymentId,
+        amount: payment.amount,
+        currency: payment.currency,
+        status: payment.status,
+      },
+    });
+  } catch (error) {
+    console.error("Failed payment error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update payment status",
     });
   }
 };
