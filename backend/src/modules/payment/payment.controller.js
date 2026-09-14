@@ -6,6 +6,7 @@ import {
 } from "./payment.service.js";
 
 import { verifyRazorpaySignature } from "../../common/utils/verifyRazorpaySignature.js";
+import { verifyRazorpayWebhookSignature } from "../../common/utils/verifyRazorpayWebhookSignature.js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -149,6 +150,49 @@ export const failedPaymentController = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update payment status",
+    });
+  }
+};
+
+export const webhookController = async (req, res) => {
+  try {
+    const signature = req.headers["x-razorpay-signature"];
+
+    if (!signature) {
+      return res.status(400).json({
+        success: false,
+        message: "Webhook signature is missing",
+      });
+    }
+
+    const rawBody = req.body;
+
+    const isValid = verifyRazorpayWebhookSignature({
+      rawBody,
+      signature,
+    });
+
+    if (!isValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid webhook signature",
+      });
+    }
+
+    const payload = JSON.parse(rawBody.toString());
+
+    console.log("Razorpay Webhook Received:", payload);
+
+    return res.status(200).json({
+      success: true,
+      message: "Webhook received successfully",
+    });
+  } catch (error) {
+    console.error("Webhook error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Webhook processing failed",
     });
   }
 };
